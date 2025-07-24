@@ -46,7 +46,7 @@ for i in range(nb_immo):
 
 # ------------------ SCPI ------------------
 st.header("🏢 SCPI")
-type_scpi = st.selectbox("Mode d'investissement", ["Crédit", "DCA"])
+type_scpi = st.selectbox("Mode d'investissement", ["Cash","Crédit", "DCA"])
 scpi_rendement = st.slider("Rendement annuel SCPI (%)", 0.0, 10.0, 4.5)
 scpi_frais = st.slider("Frais d'entrée (%)", 0.0, 15.0, 10.0)
 if type_scpi == "Crédit":
@@ -54,6 +54,9 @@ if type_scpi == "Crédit":
     scpi_annee = st.number_input("Année de souscription", value=2023)
     scpi_duree = st.number_input("Durée crédit SCPI (ans)", value=20)
     scpi_taux = st.number_input("Taux de crédit SCPI (%)", value=2.0)
+if type_scpi == "Cash":
+    scpi_montant_cash = st.number_input("Montant investi (€)", value=0)
+    scpi_annee1 = st.number_input("Année de souscription", value=2023)
 else:
     scpi_dca = st.number_input("Versement mensuel SCPI (€)", value=0)
     scpi_annee_dca = st.number_input("Année de démarrage DCA", value=2023)
@@ -154,6 +157,15 @@ if type_scpi == "Crédit":
             croissance = (1 + scpi_rendement / 100) ** (year - scpi_annee)
             net = scpi_montant * croissance * (1 - scpi_frais / 100)
             df.loc[year, "SCPI"] += net
+
+elif type_scpi=="Cash":
+    for i in range(int(last_year-start_year+1)):
+        year = scpi_annee1 + i
+        if year in df.index:
+            croissance = (1 + scpi_rendement / 100) ** (year - scpi_annee1)
+            net = scpi_montant_cash * croissance * (1 - scpi_frais / 100)
+            df.loc[year, "SCPI"] += net
+
 else:
     for year in df.index:
         if year >= scpi_annee_dca:
@@ -161,6 +173,7 @@ else:
             total = scpi_dca * mois
             croissance = (1 + scpi_rendement / 100) ** (year - scpi_annee_dca)
             df.loc[year, "SCPI"] += total * croissance * (1 - scpi_frais / 100)
+
 
 for etf, data in etf_data.items():
     for year in df.index:
@@ -210,6 +223,9 @@ st.markdown(f"- 🏡 Biens immobiliers : **{len(immos)}**")
 st.markdown(f"- 🏢 SCPI : **{type_scpi}**")
 if type_scpi == "Crédit":
     st.markdown(f"  - Montant : **{scpi_montant} €**, Taux : **{scpi_taux}%**, Durée : **{scpi_duree} ans**")
+elif type_scpi == "Cash":
+    st.markdown(f"  - Montant investi en Cash: **{scpi_montant_cash} €**, **")
+
 else:
     st.markdown(f"  - DCA mensuel : **{scpi_dca} €**, depuis **{scpi_annee_dca}**")
 total_etf = sum([v["init"] + v["dca"] * 12 for v in etf_data.values()])
@@ -250,7 +266,9 @@ st.header("📊 Projections et Risque")
 
 st.line_chart(df["Total"], height=250)
 st.area_chart(df[["Immobilier", "SCPI", "Bourse", "Crypto", "Participation"]], height=250)
-age_select = st.slider("🔢 Voir la répartition à l'âge de :", int(df["Age"].min()), int(df["Age"].max()), value=current_age+10)
+max_age=last_year-birth_year-1 #,int(df["Age"].max())) int(df["Age"].max()) #
+st.write(max_age)
+age_select = st.slider("🔢 Voir la répartition à l'âge de :", int(df["Age"].min()), max_value=max_age, value=current_age)
 
 # Message sur le patrimoine net total à cet âge
 patrimoine_total = df.loc[birth_year + age_select, "Total"]
