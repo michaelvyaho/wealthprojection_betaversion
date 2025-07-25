@@ -21,7 +21,7 @@ def get_annual_returns():
 
     for asset_class, ticker in etf_classes.items():
         try:
-            data = yf.download(ticker, start="1930-01-01", progress=False)
+            data = yf.download(ticker, start="1985-01-01", progress=False)
             if data.empty:
                 annual_returns[asset_class] = None
                 continue
