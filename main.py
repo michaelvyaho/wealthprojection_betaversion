@@ -13,11 +13,13 @@ from annual_return_index import *
 
 # CONFIGURATION
 st.set_page_config(page_title="Simulateur Patrimoine", layout="wide")
+st.markdown(f"- 👤 Mis à disposition par Michael V. **")
+st.markdown(f"- 🚨 Cet outil n'est pas un outil  d'investissement ou d'incitation à prendre des risques, faites vos propres recherches avant d'investir **")
 st.title("💰 Simulateur de Valorisation du Patrimoine")
 
 # ------------------ PROFIL ------------------
 st.header("👤 Profil Utilisateur")
-birth_year = st.number_input("Votre année de naissance", min_value=1925, max_value=datetime.now().year, value=1986)
+birth_year = st.number_input("Votre année de naissance", min_value=1925, max_value=datetime.now().year, value=1990)
 
 
 current_year = datetime.now().year
@@ -26,7 +28,7 @@ st.write(f"Âge actuel : **{current_age} ans**")
 start_year = st.number_input(f"Année du premier investissement", min_value=birth_year,value=birth_year+30,max_value=birth_year+70)
 st.write(f"Votre premier investissement a été effecutué à l'Âge de : **{-birth_year+start_year} ans**")
 
-last_year = st.slider("Horizon max Année investissement", min_value=start_year,value=start_year+30,max_value=birth_year+100)
+last_year = st.slider("Horizon max Année investissement", min_value=start_year,value=start_year+15,max_value=birth_year+100)
 
 st.write(f"Votre patrimoine sera projeté jusqu'à l'Âge de : **{last_year-birth_year} ans**")
 # ------------------ IMMOBILIER ------------------
@@ -36,10 +38,10 @@ immos = []
 for i in range(nb_immo):
     with st.expander(f"Bien immobilier #{i + 1}"):
         montant = st.number_input(f"Montant du bien #{i+1} (€)", value=250000)
-        apport = st.number_input(f"Apport personnel (frais inclus) #{i+1} (€)", value=montant*0.1)
+        apport = st.number_input(f"Apport personnel (frais inclus) #{i+1} (€)",min_value=0, value=montant*0.1,max_value=montant)
         taux = st.number_input(f"Taux de crédit (%) #{i+1}", value=2.0)
         duree = st.number_input(f"Durée crédit (ans) #{i+1}", value=25)
-        annee = st.number_input(f"Année d'investissement #{i+1}", value=2022)
+        annee = st.number_input(f"Année d'investissement #{i+1}", value=current_year)
         ancien_neuf = st.selectbox(f"Ancien ou Neuf #{i + 1}", ["Ancien", "Neuf"], key=f"ancien_neuf_{i}")
         immos.append({"montant": montant, "apport": apport, "taux": taux / 100, "duree": duree, "annee": annee})
 
@@ -48,18 +50,18 @@ for i in range(nb_immo):
 st.header("🏢 SCPI")
 type_scpi = st.selectbox("Mode d'investissement", ["Cash","Crédit", "DCA"])
 scpi_rendement = st.slider("Rendement annuel SCPI (%)", 0.0, 10.0, 4.5)
-scpi_frais = st.slider("Frais d'entrée (%)", 0.0, 15.0, 10.0)
+scpi_frais = st.slider("Frais d'entrée (%)", 0.0, 15.0, 0.0)
 if type_scpi == "Crédit":
     scpi_montant = st.number_input("Montant investi (€)", value=0)
-    scpi_annee = st.number_input("Année de souscription", value=2023)
-    scpi_duree = st.number_input("Durée crédit SCPI (ans)", value=20)
-    scpi_taux = st.number_input("Taux de crédit SCPI (%)", value=2.0)
+    scpi_annee = st.number_input("Année de souscription", value=current_year)
+    scpi_duree = st.number_input("Durée crédit SCPI (ans)", value=0)
+    scpi_taux = st.number_input("Taux de crédit SCPI (%)", value=3.0)
 if type_scpi == "Cash":
     scpi_montant_cash = st.number_input("Montant investi (€)", value=0)
-    scpi_annee1 = st.number_input("Année de souscription", value=2023)
+    scpi_annee1 = st.number_input("Année de souscription", value=current_year)
 else:
     scpi_dca = st.number_input("Versement mensuel SCPI (€)", value=0)
-    scpi_annee_dca = st.number_input("Année de démarrage DCA", value=2023)
+    scpi_annee_dca = st.number_input("Année de démarrage DCA", value=current_year)
 
 # ------------------ ETF ------------------
 st.header("📊 Investissements Boursiers (ETF)")
@@ -81,28 +83,28 @@ crypto_assets = ["Bitcoin", "Ethereum", "Altcoins"]
 crypto_data = {}
 for crypto in crypto_assets:
     with st.expander(f"{crypto}"):
-        init = st.number_input(f"Apport initial {crypto} (€)", value=1000, key=crypto+"_init")
-        dca = st.number_input(f"DCA mensuel {crypto} (€)", value=20, key=crypto+"_dca")
+        init = st.number_input(f"Apport initial {crypto} (€)", value=0, key=crypto+"_init")
+        dca = st.number_input(f"DCA mensuel {crypto} (€)", value=0, key=crypto+"_dca")
         rendement = st.slider(f"Rendement annuel attendu {crypto} (%)", -80.0, 100.0, returns[crypto].iloc[0]/4, key=crypto+"_rendement")
-        debut = st.number_input(f"Année de début {crypto}", value=2024, key=crypto+"_debut")
+        debut = st.number_input(f"Année de début {crypto}", value=current_year, key=crypto+"_debut")
         crypto_data[crypto] = {"init": init, "dca": dca, "rendement": rendement / 100, "annee_debut": debut}
 
 # ------------------ PARTICIPATION ------------------
 st.header("💼 Participation & Intéressement")
-versement_annuel = st.number_input("Montant annuel moyen reçu (€)", value=13000)
-annee_debut_part = st.number_input("Année de début de versement", value=2022)
-rendement_part = st.slider("Rendement annuel estimé (%)", 0.0, 15.0, 6.0)
+versement_annuel = st.number_input("Montant annuel moyen reçu (€)", value=0)
+annee_debut_part = st.number_input("Année de début de versement", value=current_year)
+rendement_part = st.slider("Rendement annuel estimé (%)", 0.0, 15.0, 5.0)
 
 # ------------------ PASSIF- VOITURES ------------------
 st.header("💼 Voitures- Montres...")
-valeur_passif = st.number_input("Valorisation (€)", value=40000)
-annee_debut_passif = st.number_input("Année d'achat", value=2022)
+valeur_passif = st.number_input("Valorisation (€)", value=0)
+annee_debut_passif = st.number_input("Année d'achat", value=current_year)
 rendement_passif = st.slider("Rendement annuel passif estimé (%)", -20.0, -10.0, 20.0)
 
 # ------------------ EPARGNE DE SECURITE ------------------
 st.header("💼 EPARGNE DE SECURITE")
-valeur_epargne_securite = st.number_input("Valorisation (€)", value=22950)
-annee_debut_epargne_securite = st.number_input("Année ", value=2022)
+valeur_epargne_securite = st.number_input("Valorisation (€)", value=0)
+annee_debut_epargne_securite = st.number_input("Année ", value=current_year)
 rendement_epargne_securite = st.slider("Rendement annuel Livret (%)", 0, 2, 7)
 
 
@@ -259,9 +261,9 @@ elif type_scpi == "Cash":
 
 else:
     st.markdown(f"  - DCA mensuel : **{scpi_dca} €**, depuis **{scpi_annee_dca}**")
-total_etf = sum([v["init"] + v["dca"] * 12 for v in etf_data.values()])
+total_etf = sum([v["dca"] * 12 for v in etf_data.values()])
 st.markdown(f"📊 ETF - Total estimé annuel : **{int(total_etf)} €**")
-total_crypto = sum([v["init"] + v["dca"] * 12 for v in crypto_data.values()])
+total_crypto = sum([ v["dca"] * 12 for v in crypto_data.values()])
 st.markdown(f"🪙 Crypto - Total estimé annuel : **{int(total_crypto)} €**")
 st.markdown(f"💼 Participation - Versement annuel : **{versement_annuel} €**, rendement : **{rendement_part}%**")
 
