@@ -103,7 +103,7 @@ rendement_passif = st.slider("Rendement annuel passif estimé (%)", -20.0, -10.0
 
 # ------------------ EPARGNE DE SECURITE ------------------
 st.header("💼 EPARGNE DE SECURITE")
-valeur_epargne_securite = st.number_input("Valorisation (€)", value=0)
+valeur_epargne_securite = st.number_input("Epargne de sécurité (€)", value=0)
 annee_debut_epargne_securite = st.number_input("Année ", value=current_year)
 rendement_epargne_securite = st.slider("Rendement annuel Livret (%)", 0, 2, 7)
 
