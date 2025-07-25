@@ -37,8 +37,8 @@ nb_immo = st.number_input("Nombre de biens immobiliers", min_value=0, max_value=
 immos = []
 for i in range(nb_immo):
     with st.expander(f"Bien immobilier #{i + 1}"):
-        montant = st.number_input(f"Montant du bien #{i+1} (€)", value=250000)
-        apport = st.number_input(f"Apport personnel (frais inclus) #{i+1} (€)",min_value=0, value=montant*0.1,max_value=montant)
+        montant = st.number_input(f"Montant du bien #{i+1} (€)", value=100000)
+        apport = st.number_input(f"Apport personnel (frais inclus) #{i+1} (€)",value=0)
         taux = st.number_input(f"Taux de crédit (%) #{i+1}", value=2.0)
         duree = st.number_input(f"Durée crédit (ans) #{i+1}", value=25)
         annee = st.number_input(f"Année d'investissement #{i+1}", value=current_year)
