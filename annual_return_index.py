@@ -40,9 +40,9 @@ def get_annual_returns():
 
     return annual_returns
 
-
-if __name__ == '__main__':
-    returns = get_annual_returns()
-    for k, v in returns.items():
-        print(f"{k}: {v}%")
+#
+# if __name__ == '__main__':
+#     returns = get_annual_returns()
+#     for k, v in returns.items():
+#         print(f"{k}: {v}%")
     #print(returns["S&P500"].iloc[0])

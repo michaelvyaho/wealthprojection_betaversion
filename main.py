@@ -104,13 +104,13 @@ rendement_part = st.slider("Rendement annuel estimé (%)", 0.0, 15.0, 5.0)
 st.header("💼 Voitures- Montres...")
 valeur_passif = st.number_input("Valorisation (€)", value=0)
 annee_debut_passif = st.number_input("Année d'achat", value=current_year)
-rendement_passif = st.slider("Rendement annuel passif estimé (%)", -20.0, -10.0, 20.0)
+rendement_passif = st.slider("Rendement annuel passif estimé (%)", -20.0, 10.0, -8.0)
 
 # ------------------ EPARGNE DE SECURITE ------------------
 st.header("💼 EPARGNE DE SECURITE")
 valeur_epargne_securite = st.number_input("Epargne de sécurité (€)", value=0)
 annee_debut_epargne_securite = st.number_input("Année ", value=current_year)
-rendement_epargne_securite = st.slider("Rendement annuel Livret (%)", 0, 2, 7)
+rendement_epargne_securite = st.slider("Rendement annuel Livret (%)", 0.0, 7.0, 2.0)
 
 
 projection_years=list(range(start_year,last_year+1))
@@ -275,7 +275,12 @@ st.markdown(f"💼 Participation - Versement annuel : **{versement_annuel} €**
 st.header('Global View')
 df_view=df.copy()
 df_view.rename(columns={"Bourse":"ETFs/Bourses","Participation":"PEE/PERCO"},inplace=True)
-st.dataframe(df_view[["Livrets","Immobilier", "SCPI", "ETFs/Bourses",  "PEE/PERCO","Crypto","Others","Total"]])
+# Arrondir à 0 chiffre après la virgule et ajouter les séparateurs de milliers
+df_formatted=df_view[["Livrets","Immobilier", "SCPI", "ETFs/Bourses",  "PEE/PERCO","Crypto","Others","Total"]]
+df_formatted = df_formatted.round(0).astype(int).applymap(lambda x: f"{x:,}".replace(",", " "))
+
+#print(df_formatted)
+st.dataframe(df_formatted)
 # ------------------ RISQUE ------------------
 volat_dict = {
     "Immobilier": 0.05,
