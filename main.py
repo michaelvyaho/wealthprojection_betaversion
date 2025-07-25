@@ -14,8 +14,13 @@ from annual_return_index import *
 # CONFIGURATION
 st.set_page_config(page_title="Simulateur Patrimoine", layout="wide")
 st.markdown(f"- 👤 Mis à disposition par Michael V. **")
-st.markdown(f"- 🚨 Cet outil n'est pas un outil  d'investissement ou d'incitation à prendre des risques, faites vos propres recherches avant d'investir **")
-st.title("💰 Simulateur de Valorisation du Patrimoine")
+st.markdown("""
+> ⚠️ **Disclaimer**
+> 
+> This tool does not constitute financial advice or a recommendation to take financial risks.  
+> Always do your own research before making any investment decisions.
+""")
+st.title("💰 Simulateur/Projection de Valorisation du Patrimoine")
 
 # ------------------ PROFIL ------------------
 st.header("👤 Profil Utilisateur")
@@ -28,7 +33,7 @@ st.write(f"Âge actuel : **{current_age} ans**")
 start_year = st.number_input(f"Année du premier investissement", min_value=birth_year,value=birth_year+30,max_value=birth_year+70)
 st.write(f"Votre premier investissement a été effecutué à l'Âge de : **{-birth_year+start_year} ans**")
 
-last_year = st.slider("Horizon max Année investissement", min_value=start_year,value=start_year+15,max_value=birth_year+100)
+last_year = st.slider("A quel Horizon souhaitez-vous projeter votre patrimoine?", min_value=start_year,value=current_year+15,max_value=birth_year+100)
 
 st.write(f"Votre patrimoine sera projeté jusqu'à l'Âge de : **{last_year-birth_year} ans**")
 # ------------------ IMMOBILIER ------------------
@@ -577,6 +582,13 @@ excel_data = excel_buffer.getvalue()
 st.download_button("📊 Télécharger les données Excel", data=excel_data,
                    file_name="patrimoine_simulation.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+st.sidebar.markdown("### 💖 Soutenir l'app")
+st.sidebar.markdown("Vous aimez cette app ?")
+st.sidebar.markdown("""
+<a href="https://www.buymeacoffee.com/schadmichael" target="_blank">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50">
+</a>
+""", unsafe_allow_html=True)
 # # Graphique pour le PDF
 # fig, ax = plt.subplots()
 # df[["Immobilier", "SCPI", "Bourse", "Crypto", "Participation"]].plot.area(ax=ax)
