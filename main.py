@@ -193,54 +193,43 @@ elif type_scpi=="Cash":
 
 else:
     for year in df.index:
+        total = 0.0
         if year >= scpi_annee_dca:
-            mois = (year - scpi_annee_dca + 1) * 12
-            total = scpi_dca * mois
-            croissance = (1 + scpi_rendement / 100) ** (year - scpi_annee_dca)
-            df.loc[year, "SCPI"] += total * croissance * (1 - scpi_frais / 100)
+            for past_year in range(scpi_annee_dca, year + 1):
+                for month in range(12):
+                    # Nombre de mois depuis ce versement jusqu'à l'année courante
+                    months_since = (year - past_year) * 12 + (11 - month)  # 11 au lieu de 12 pour 0-based index
+                    years_since = months_since / 12
+
+                    montant_net = scpi_dca * (1 - scpi_frais / 100)
+                    total += montant_net * ((1 + scpi_rendement / 100) ** years_since)
+
+            df.loc[year, "SCPI"] += total
 
 
-for etf, data in etf_data.items():
+
+#compute etfs investments amount
+for _, data in etf_data.items():
     for year in df.index:
         if year >= data["annee_debut"]:
-            n_months = (year - data["annee_debut"] + 1) * 12
-            montant_dca = data["dca"] * n_months
-            croissance = (1 + data["rendement"]) ** (year - data["annee_debut"])
+            total = 0.0
 
-            if year == data["annee_debut"]:
-                total = (data["init"] + montant_dca) * croissance
-            else:
-                total = montant_dca * croissance  # pas d'init ici
+            # 1. Montant initial investi à l'année de départ
+            years_since_start = year - data["annee_debut"]
+            total += data["init"] * ((1 + data["rendement"]) ** years_since_start)
+
+            # 2. DCA mensuel : chaque mois est capitalisé individuellement
+            for past_year in range(data["annee_debut"], year + 1):
+                months = 12
+                for month in range(months):
+                    months_since = (year - past_year) * 12 + (12 - month)
+                    years_since = months_since / 12
+                    total += data["dca"] * ((1 + data["rendement"]) ** years_since)
 
             df.loc[year, "Bourse"] += total
 
-# for crypto, data in crypto_data.items():
-#     for year in df.index:
-#         # if year >= data["annee_debut"]:
-#         #     n_months = (year - data["annee_debut"] + 1) * 12
-#         #     montant_dca = data["dca"] * n_months
-#         #     croissance = (1 + data["rendement"]) ** (year - data["annee_debut"])
-#         #
-#         #     # Inclure le montant initial UNE SEULE FOIS à l'année de départ
-#         #     if year == data["annee_debut"]:
-#         #         total = (data["init"] + montant_dca) * croissance
-#         #     else:
-#         #         total = montant_dca * croissance  # sans init
-#         #
-#         #     df.loc[year, "Crypto"] += total
-#
-#         if year >= data["annee_debut"]:
-#             n_months = (year - data["annee_debut"] + 1) * 12
-#             if year == data["annee_debut"]:
-#                montant_dca = data["dca"] * n_months+data["init"]
-#             else:
-#                 montant_dca = data["dca"] * n_months
-#             croissance = (1 + data["rendement"]) ** (year - data["annee_debut"])
-#
-#             total = montant_dca * croissance
-#
-#             df.loc[year, "Crypto"] += total
 
+#compute crypto investments amount
 for _, data in crypto_data.items():
     for year in df.index:
         if year >= data["annee_debut"]:
@@ -259,6 +248,8 @@ for _, data in crypto_data.items():
                     total += data["dca"] * ((1 + data["rendement"]) ** years_since)
 
             df.loc[year, "Crypto"] += total
+
+#compute participation/interessement
 for year in df.index:
     if year >= annee_debut_part:
         n = year - annee_debut_part + 1
