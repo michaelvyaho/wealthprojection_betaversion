@@ -216,18 +216,31 @@ for etf, data in etf_data.items():
 
 for crypto, data in crypto_data.items():
     for year in df.index:
+        # if year >= data["annee_debut"]:
+        #     n_months = (year - data["annee_debut"] + 1) * 12
+        #     montant_dca = data["dca"] * n_months
+        #     croissance = (1 + data["rendement"]) ** (year - data["annee_debut"])
+        #
+        #     # Inclure le montant initial UNE SEULE FOIS à l'année de départ
+        #     if year == data["annee_debut"]:
+        #         total = (data["init"] + montant_dca) * croissance
+        #     else:
+        #         total = montant_dca * croissance  # sans init
+        #
+        #     df.loc[year, "Crypto"] += total
+
         if year >= data["annee_debut"]:
             n_months = (year - data["annee_debut"] + 1) * 12
             montant_dca = data["dca"] * n_months
             croissance = (1 + data["rendement"]) ** (year - data["annee_debut"])
 
-            # Inclure le montant initial UNE SEULE FOIS à l'année de départ
+            # Inclure l'investissement initial seulement l'année de départ
             if year == data["annee_debut"]:
                 total = (data["init"] + montant_dca) * croissance
             else:
-                total = montant_dca * croissance  # sans init
+                total = montant_dca * croissance
 
-            df.loc[year, "Crypto"] += total
+            df.loc[year, crypto] += total
 
 for year in df.index:
     if year >= annee_debut_part:
