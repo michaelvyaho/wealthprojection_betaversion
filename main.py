@@ -230,15 +230,15 @@ for crypto, data in crypto_data.items():
         #     df.loc[year, "Crypto"] += total
 
         if year >= data["annee_debut"]:
+            apport=0
             n_months = (year - data["annee_debut"] + 1) * 12
-            montant_dca = data["dca"] * n_months
+            if year == data["annee_debut"]:
+               montant_dca = data["dca"] * n_months+data["init"]
+            else:
+                montant_dca = data["dca"] * n_months
             croissance = (1 + data["rendement"]) ** (year - data["annee_debut"])
 
-            # Inclure l'investissement initial seulement l'année de départ
-            if year == data["annee_debut"]:
-                total = (data["init"] + montant_dca) * croissance
-            else:
-                total = montant_dca * croissance
+            total = montant_dca * croissance
 
             df.loc[year, "Crypto"] += total
 
