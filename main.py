@@ -240,7 +240,7 @@ for crypto, data in crypto_data.items():
             else:
                 total = montant_dca * croissance
 
-            df.loc[year, crypto] += total
+            df.loc[year, "Crypto"] += total
 
 for year in df.index:
     if year >= annee_debut_part:
