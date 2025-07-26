@@ -277,7 +277,10 @@ df_view=df.copy()
 df_view.rename(columns={"Bourse":"ETFs/Bourses","Participation":"PEE/PERCO"},inplace=True)
 # Arrondir à 0 chiffre après la virgule et ajouter les séparateurs de milliers
 df_formatted=df_view[["Livrets","Immobilier", "SCPI", "ETFs/Bourses",  "PEE/PERCO","Crypto","Others","Total"]]
+
+df_formatted = df_formatted.replace([np.inf, -np.inf], np.nan).dropna()
 df_formatted = df_formatted.round(0).astype(int).applymap(lambda x: f"{x:,}".replace(",", " "))
+
 
 #print(df_formatted)
 st.dataframe(df_formatted)
