@@ -53,9 +53,10 @@ for i in range(nb_immo):
 
 # ------------------ SCPI ------------------
 st.header("🏢 SCPI")
-type_scpi = st.selectbox("Mode d'investissement", ["Cash","Crédit", "DCA"])
+st.info("https://www.economie.gouv.fr/particuliers/investir-dans-limmobilier/scpi-investissez-dans-limmobilier-avec-un-placement#")
+type_scpi = st.selectbox("Mode d'investissement", ["Cash", "DCA"])
 scpi_rendement = st.slider("Rendement annuel SCPI (%)", 0.0, 10.0, 4.5)
-scpi_frais = st.slider("Frais d'entrée (%)", 0.0, 15.0, 0.0)
+scpi_frais = st.slider("Frais d'entrée (%)", 0.0, 15.0, 10.0)
 if type_scpi == "Crédit":
     scpi_montant = st.number_input("Montant investi (€)", value=0)
     scpi_annee = st.number_input("Année de souscription", value=current_year)
@@ -70,6 +71,7 @@ else:
 
 # ------------------ ETF ------------------
 st.header("📊 Investissements Boursiers (ETF)")
+st.markdown("rendements par défaut, source yahoo finance (médiane annuelle historique)**")
 etf_classes = ["MSCI World", "S&P500","Nasdaq", "Stoxx 600", "Emerging Markets", "Or", "Obligations", "Private Equity"]
 
 returns = get_annual_returns()
@@ -78,7 +80,7 @@ for etf in etf_classes:
     with st.expander(f"{etf}"):
         init = st.number_input(f"Apport initial {etf} (€)", value=0, key=etf+"_init")
         dca = st.number_input(f"DCA mensuel {etf} (€)", value=0, key=etf+"_dca")
-        rendement = st.slider(f"Rendement annuel attendu {etf} (%)", -20.0, 20.0, returns[etf].iloc[0] , key=etf+"_rendement")
+        rendement = st.slider(f"Rendement annuel attendu {etf} (%)", -20.0, 20.0, returns[etf] , key=etf+"_rendement")
         debut = st.number_input(f"Année de début {etf}", value=2024, key=etf+"_debut")
         etf_data[etf] = {"init": init, "dca": dca, "rendement": rendement / 100, "annee_debut": debut}
 
@@ -90,7 +92,7 @@ for crypto in crypto_assets:
     with st.expander(f"{crypto}"):
         init = st.number_input(f"Apport initial {crypto} (€)", value=0, key=crypto+"_init")
         dca = st.number_input(f"DCA mensuel {crypto} (€)", value=0, key=crypto+"_dca")
-        rendement = st.slider(f"Rendement annuel attendu {crypto} (%)", -80.0, 100.0, returns[crypto].iloc[0]/4, key=crypto+"_rendement")
+        rendement = st.slider(f"Rendement annuel attendu {crypto} (%)", -80.0, 100.0, returns[crypto]/4, key=crypto+"_rendement")
         debut = st.number_input(f"Année de début {crypto}", value=current_year, key=crypto+"_debut")
         crypto_data[crypto] = {"init": init, "dca": dca, "rendement": rendement / 100, "annee_debut": debut}
 
@@ -273,12 +275,14 @@ for i in range(40):
         df.loc[year, "Others"] += net
 
 df["Total"] = df[["Livrets","Immobilier", "SCPI", "Bourse", "Crypto", "Participation","Others"]].sum(axis=1)
-
+df=df[df['Total']!=0]
 # ------------------ RÉCAP ------------------
 st.header("📋 Récapitulatif du Profil")
 st.markdown(f"- 👤 Âge actuel : **{current_age} ans**")
 st.markdown(f"- Epargne de sécurité :**{valeur_epargne_securite} €**")
-st.markdown(f"- 🏡 Biens immobiliers : **{len(immos)}**")
+# 💰 Somme des pret immos
+somme_pret = sum([bien["montant"] for bien in immos])
+st.markdown(f"- 🏡 Biens immobiliers : **{len(immos)}** & ### 💰 avec un pret total estimé de : **{somme_pret:,.0f} €**")
 st.markdown(f"- 🏢 SCPI : **{type_scpi}**")
 if type_scpi == "Crédit":
     st.markdown(f"  - Montant : **{scpi_montant} €**, Taux : **{scpi_taux}%**, Durée : **{scpi_duree} ans**")
@@ -288,9 +292,12 @@ elif type_scpi == "Cash":
 else:
     st.markdown(f"  - DCA mensuel : **{scpi_dca} €**, depuis **{scpi_annee_dca}**")
 total_etf = sum([v["dca"] * 12 for v in etf_data.values()])
-st.markdown(f"📊 ETF - Total estimé annuel : **{int(total_etf)} €**")
+total_etf_apport_inital = sum([v["init"]  for v in etf_data.values()])
+
+st.markdown(f"📊 ETF - Total estimé annuel : **{int(total_etf)} €/an avec un apport initial de {total_etf_apport_inital} €**")
 total_crypto = sum([ v["dca"] * 12 for v in crypto_data.values()])
-st.markdown(f"🪙 Crypto - Total estimé annuel : **{int(total_crypto)} €**")
+init_crypto = sum([ v["init"]  for v in crypto_data.values()])
+st.markdown(f"🪙 Crypto - Total estimé annuel : **{int(total_crypto)} €/an avec un apport initial de {init_crypto} € **")
 st.markdown(f"💼 Participation - Versement annuel : **{versement_annuel} €**, rendement : **{rendement_part}%**")
 
 st.header('Global View')
