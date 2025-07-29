@@ -1,8 +1,10 @@
 import yfinance as yf
 import pandas as pd
+import numpy as np
 from datetime import datetime
+import streamlit as st
 
-def get_annual_returns():
+def get_annual_returns_old():
     etf_classes = {
         "MSCI World": "URTH",               # iShares MSCI World ETF
         "S&P500": "^GSPC",                  # S&P 500 Index
@@ -37,6 +39,65 @@ def get_annual_returns():
             annual_returns[asset_class] = round(cagr * 100, 2)
         except Exception as e:
             annual_returns[asset_class] = 5
+
+    return annual_returns
+
+def etf_index():
+    etf_classes = {
+        "MSCI World": "URTH",
+        "S&P500": "^GSPC",
+        "Nasdaq": "^IXIC",
+        "Stoxx 600": "^STOXX",
+        "Emerging Markets": "EEM",
+        "Or": "GLD",
+        "Obligations": "AGG",
+        "Private Equity": "BX",
+        "Bitcoin": "BTC-EUR",
+        "Ethereum": "ETH-EUR",
+        "Altcoins": "SOL-EUR"
+    }
+    return etf_classes
+@st.cache_data
+def get_annual_returns():
+    etf_classes =etf_index()
+    # {
+    #     "MSCI World": "URTH",
+    #     "S&P500": "^GSPC",
+    #     "Nasdaq": "^IXIC",
+    #     "Stoxx 600": "^STOXX",
+    #     "Emerging Markets": "EEM",
+    #     "Or": "GLD",
+    #     "Obligations": "AGG",
+    #     "Private Equity": "BX",
+    #     "Bitcoin": "BTC-EUR",
+    #     "Ethereum": "ETH-EUR",
+    #     "Altcoins": "SOL-EUR"
+    # }
+
+    annual_returns = {}
+    default_const_return=4
+
+    for asset_class, ticker in etf_classes.items():
+        try:
+            data = yf.download(ticker, start="1930-01-01", progress=False, auto_adjust=True)
+            if data.empty:
+                annual_returns[asset_class] = default_const_return
+                continue
+
+            # Résample annuel sur les prix de clôture ajustés
+            annual_prices = data['Close'].resample('Y').last()
+            yearly_returns = annual_prices.pct_change().dropna()
+
+            if yearly_returns.empty:
+                annual_returns[asset_class] = default_const_return
+                continue
+
+            # Quantile 50% (médiane) en pourcentage
+            median_return = np.percentile(yearly_returns.values, 50) * 100
+            annual_returns[asset_class] = round(median_return, 2)
+
+        except Exception as e:
+            annual_returns[asset_class] = default_const_return
 
     return annual_returns
 
