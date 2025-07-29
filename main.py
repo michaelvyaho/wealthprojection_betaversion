@@ -427,7 +427,7 @@ st.header("📊 Projections et Risque")
 st.line_chart(df["Total"], height=250)
 st.area_chart(df[["Livrets","Immobilier", "SCPI", "Bourse", "Crypto", "Participation","Others"]], height=250)
 max_age=last_year-birth_year-1 #,int(df["Age"].max())) int(df["Age"].max()) #
-st.write(max_age)
+
 age_select = st.slider("🔢 Voir la répartition à l'âge de :", int(df["Age"].min()), max_value=max_age, value=current_age)
 
 # Message sur le patrimoine net total à cet âge
