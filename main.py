@@ -13,6 +13,30 @@ import requests
 import datetime as dt
 import sqlite3
 from datetime import datetime, date
+import os
+
+# Chemin du dossier et du fichier config
+config_dir = ".streamlit"
+config_path = os.path.join(config_dir, "config.toml")
+
+# Créer le dossier s'il n'existe pas
+os.makedirs(config_dir, exist_ok=True)
+
+# Contenu du fichier de configuration
+config_content = """
+[theme]
+base = "dark"
+primaryColor = "#1DB954"
+backgroundColor = "#000000"
+secondaryBackgroundColor = "#1a1a1a"
+textColor = "#FFFFFF"
+"""
+
+# Écrire le fichier
+with open(config_path, "w") as f:
+    f.write(config_content)
+
+
 # CONFIGURATION
 st.set_page_config(page_title="Simulateur Patrimoine", layout="wide")
 st.markdown(f"- 👤 Mis à disposition par Michael V. **")
