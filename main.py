@@ -9,9 +9,10 @@ import numpy_financial as npf
 from modules.Utils import *
 from modules.pdf_generator import *
 from annual_return_index import *
-
+import requests
 import datetime as dt
-
+import sqlite3
+from datetime import datetime, date
 # CONFIGURATION
 st.set_page_config(page_title="Simulateur Patrimoine", layout="wide")
 st.markdown(f"- 👤 Mis à disposition par Michael V. **")
@@ -21,7 +22,62 @@ st.markdown("""
 > This tool does not constitute financial advice or a recommendation to take financial risks.  
 > Always do your own research before making any investment decisions.
 """)
-st.title("💰 Simulateur/Projection de Valorisation du Patrimoine")
+# === 1. Fonction pour obtenir IP et localisation
+def get_ip_and_location():
+    try:
+        res = requests.get("https://ipinfo.io/json").json()
+        ip = res.get("ip", "N/A")
+        city = res.get("city", "N/A")
+        country = res.get("country", "N/A")
+        return ip, city, country
+    except:
+        return "N/A", "N/A", "N/A"
+
+# === 2. Connexion à la base SQLite
+conn = sqlite3.connect("visiteurs.db", check_same_thread=False)
+c = conn.cursor()
+
+# === 3. Créer la table si elle n'existe pas
+c.execute("""
+    CREATE TABLE IF NOT EXISTS visits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        ip TEXT,
+        city TEXT,
+        country TEXT
+    )
+""")
+
+# === 4. Ajouter une nouvelle visite
+ip, city, country = get_ip_and_location()
+timestamp = datetime.now().isoformat()
+c.execute("INSERT INTO visits (timestamp, ip, city, country) VALUES (?, ?, ?, ?)",
+          (timestamp, ip, city, country))
+conn.commit()
+
+# === 5. Stats globales et journalières
+c.execute("SELECT COUNT(*) FROM visits")
+visit_count = c.fetchone()[0]
+
+c.execute("SELECT COUNT(*) FROM visits WHERE DATE(timestamp) = ?", (date.today().isoformat(),))
+daily_visits = c.fetchone()[0]
+
+# === 6. Affichage dans la sidebar
+st.sidebar.markdown("## 📊 Statistiques de visites")
+st.sidebar.markdown(f"👥 **Visites totales** : `{visit_count}`")
+st.sidebar.markdown(f"📅 **Aujourd’hui** : `{daily_visits}`")
+st.sidebar.markdown(f"🧭 **Localisation** : `{city}, {country}`")
+st.sidebar.markdown(f"🕒 **Dernière visite** : `{timestamp[:19]}`")
+
+# === 7. (Optionnel) Dernières visites
+with st.expander("🔍 Dernières visites"):
+    rows = conn.execute("SELECT timestamp, city, country FROM visits ORDER BY id DESC LIMIT 5").fetchall()
+    st.table(rows)
+
+# === 8. Fermer la connexion
+conn.close()
+
+st.title("💰 Simulateur de Patrimoine")
 
 # ------------------ PROFIL ------------------
 st.header("👤 Profil Utilisateur")
@@ -116,6 +172,12 @@ valeur_epargne_securite = st.number_input("Epargne de sécurité (€)", value=0
 annee_debut_epargne_securite = st.number_input("Année ", value=current_year)
 rendement_epargne_securite = st.slider("Rendement annuel Livret (%)", 0.0, 7.0, 2.0)
 
+# ------------------ CREDIT CONSOMMATIONS ------------------
+st.header("💼 CREDITS CONSOMMATIONS")
+montant_credit_conso = st.number_input(f"Montant du credit conso (€)", value=0)
+taux_credit_conso = st.number_input(f"Taux de crédit conso (%)", value=4.0)
+duree_credit_conso = st.number_input(f"Durée crédit conso (ans)", value=5)
+annee_credit_conso = st.number_input(f"Année du pret conso", value=current_year)
 
 projection_years=list(range(start_year,last_year+1))
 df = pd.DataFrame(index=projection_years)
@@ -127,6 +189,7 @@ df["Crypto"] = 0
 df["Participation"] = 0
 df["Others"] = 0
 df['Livrets']=0
+df['Conso']=0
 
 # Initialisation des colonnes
 df["ImmobilierBrut"] = 0
